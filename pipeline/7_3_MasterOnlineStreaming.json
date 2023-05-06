@@ -1,0 +1,68 @@
+{
+	"name": "7_3_MasterOnlineStreaming",
+	"properties": {
+		"activities": [
+			{
+				"name": "OnlineBlobToAdls",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "7OnlineBlobToAdls2",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "DataLakeToStg",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "OnlineBlobToAdls",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "7_3_JsonToStgOnlinePurchase",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "ArchiveDL",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "DataLakeToStg",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "ArchiveOnlineAdls",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"variables": {
+			"StartTime": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-03-10T18:57:22Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

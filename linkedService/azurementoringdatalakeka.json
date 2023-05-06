@@ -1,0 +1,11 @@
+{
+	"name": "azurementoringdatalakeka",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://azurementoringdatalakekk.dfs.core.windows.net"
+		}
+	}
+}

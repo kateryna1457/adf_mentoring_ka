@@ -1,0 +1,72 @@
+{
+	"name": "Metadata_table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "MoviesDb",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "container_name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "folder_name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "file_name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "column_delimiter",
+				"type": "nvarchar"
+			},
+			{
+				"name": "row_delimiter",
+				"type": "nvarchar"
+			},
+			{
+				"name": "encoding",
+				"type": "nvarchar"
+			},
+			{
+				"name": "escape_character",
+				"type": "nvarchar"
+			},
+			{
+				"name": "quote_character",
+				"type": "nvarchar"
+			},
+			{
+				"name": "schema_name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "table_name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DIU_value",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "mapping",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "etl",
+			"table": "tControlMetadata"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

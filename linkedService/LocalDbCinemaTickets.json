@@ -1,0 +1,22 @@
+{
+	"name": "LocalDbCinemaTickets",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "mentoring_key_vault_ka",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "localdbcinematickets"
+			}
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIR6Module",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

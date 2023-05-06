@@ -1,0 +1,19 @@
+{
+	"name": "sinkOnlineJson",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azurementoringdatalakeka",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileSystem": "online"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

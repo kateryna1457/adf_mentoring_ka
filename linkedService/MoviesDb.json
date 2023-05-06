@@ -1,0 +1,19 @@
+{
+	"name": "MoviesDb",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "mentoring_key_vault_ka",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "moviesDbEtlUser",
+				"secretVersion": "d983001dace9462abfb95d694f586f53"
+			}
+		}
+	}
+}
