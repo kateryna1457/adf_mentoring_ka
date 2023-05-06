@@ -1,0 +1,138 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "mentoring-adf-kka"
+		},
+		"DataMartDB_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "DataMartAccess"
+		},
+		"LocalDbCinemaTickets_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "localdbcinematickets"
+		},
+		"MoviesDb_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "moviesDbEtlUser"
+		},
+		"OnlineMentoringStorage_properties_typeProperties_sasUri_secretName": {
+			"type": "string",
+			"defaultValue": "rlonlinestoragementoring"
+		},
+		"azurementoringaukka_properties_typeProperties_sasUri_secretName": {
+			"type": "string",
+			"defaultValue": "blobaustralialistread"
+		},
+		"azurementoringdatalakeka_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://azurementoringdatalakekk.dfs.core.windows.net"
+		},
+		"azurementoringstorageka_properties_typeProperties_sasUri_secretName": {
+			"type": "string",
+			"defaultValue": "accesstokentomoviescontainerinazurementoringstorage"
+		},
+		"mentoring_key_vault_ka_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://mentoring-key-vault-kka.vault.azure.net/"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "mentoring-adf-kka_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"azurementoringdatalakeka_properties_typeProperties_url": {
+						"value": "[parameters('azurementoringdatalakeka_properties_typeProperties_url')]"
+					},
+					"mentoring_key_vault_ka_properties_typeProperties_baseUrl": {
+						"value": "[parameters('mentoring_key_vault_ka_properties_typeProperties_baseUrl')]"
+					},
+					"DataMartDB_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('DataMartDB_properties_typeProperties_connectionString_secretName')]"
+					},
+					"LocalDbCinemaTickets_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('LocalDbCinemaTickets_properties_typeProperties_connectionString_secretName')]"
+					},
+					"MoviesDb_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('MoviesDb_properties_typeProperties_connectionString_secretName')]"
+					},
+					"OnlineMentoringStorage_properties_typeProperties_sasUri_secretName": {
+						"value": "[parameters('OnlineMentoringStorage_properties_typeProperties_sasUri_secretName')]"
+					},
+					"azurementoringaukka_properties_typeProperties_sasUri_secretName": {
+						"value": "[parameters('azurementoringaukka_properties_typeProperties_sasUri_secretName')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "mentoring-adf-kka_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"azurementoringstorageka_properties_typeProperties_sasUri_secretName": {
+						"value": "[parameters('azurementoringstorageka_properties_typeProperties_sasUri_secretName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'mentoring-adf-kka_ArmTemplate_0')]"
+			]
+		},
+		{
+			"name": "mentoring-adf-kka_ArmTemplate_2",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_2.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'mentoring-adf-kka_ArmTemplate_1')]"
+			]
+		}
+	]
+}

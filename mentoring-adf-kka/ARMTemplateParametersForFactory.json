@@ -1,0 +1,33 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "mentoring-adf-kka"
+		},
+		"DataMartDB_properties_typeProperties_connectionString_secretName": {
+			"value": "DataMartAccess"
+		},
+		"LocalDbCinemaTickets_properties_typeProperties_connectionString_secretName": {
+			"value": "localdbcinematickets"
+		},
+		"MoviesDb_properties_typeProperties_connectionString_secretName": {
+			"value": "moviesDbEtlUser"
+		},
+		"OnlineMentoringStorage_properties_typeProperties_sasUri_secretName": {
+			"value": "rlonlinestoragementoring"
+		},
+		"azurementoringaukka_properties_typeProperties_sasUri_secretName": {
+			"value": "blobaustralialistread"
+		},
+		"azurementoringdatalakeka_properties_typeProperties_url": {
+			"value": "https://azurementoringdatalakekk.dfs.core.windows.net"
+		},
+		"azurementoringstorageka_properties_typeProperties_sasUri_secretName": {
+			"value": "accesstokentomoviescontainerinazurementoringstorage"
+		},
+		"mentoring_key_vault_ka_properties_typeProperties_baseUrl": {
+			"value": "https://mentoring-key-vault-kka.vault.azure.net/"
+		}
+	}
+}
