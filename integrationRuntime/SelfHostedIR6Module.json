@@ -1,0 +1,6 @@
+{
+	"name": "SelfHostedIR6Module",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}

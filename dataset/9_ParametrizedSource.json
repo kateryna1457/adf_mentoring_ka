@@ -1,0 +1,81 @@
+{
+	"name": "9_ParametrizedSource",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azurementoringdatalakeka",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"SourceContainer": {
+				"type": "string",
+				"defaultValue": "raw"
+			},
+			"SourceDirectory": {
+				"type": "string",
+				"defaultValue": "metadata-driven"
+			},
+			"SourceFileName": {
+				"type": "string",
+				"defaultValue": "credits.csv"
+			},
+			"Column_Delimiter": {
+				"type": "string",
+				"defaultValue": ","
+			},
+			"Row_Delimiter": {
+				"type": "string",
+				"defaultValue": "\\n"
+			},
+			"Encoding": {
+				"type": "string",
+				"defaultValue": "UTF-8"
+			},
+			"Escape_character": {
+				"type": "string",
+				"defaultValue": "\""
+			},
+			"Quote_character": {
+				"type": "string",
+				"defaultValue": "\""
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "credits.csv",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "metadata-driven",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "raw",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\"",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "cast",
+				"type": "String"
+			},
+			{
+				"name": "crew",
+				"type": "String"
+			},
+			{
+				"name": "id",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

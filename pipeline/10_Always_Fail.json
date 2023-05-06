@@ -1,0 +1,22 @@
+{
+	"name": "10_Always_Fail",
+	"properties": {
+		"activities": [
+			{
+				"name": "iAlwaysFail",
+				"type": "Fail",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"message": "Internal Server Error",
+					"errorCode": "500"
+				}
+			}
+		],
+		"annotations": [
+			"Transform"
+		],
+		"lastPublishTime": "2023-04-24T10:00:45Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

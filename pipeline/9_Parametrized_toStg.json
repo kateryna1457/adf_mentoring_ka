@@ -1,0 +1,338 @@
+{
+	"name": "9_Parametrized_toStg",
+	"properties": {
+		"activities": [
+			{
+				"name": "RawMetadataToDb",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"additionalColumns": [
+							{
+								"name": "pipelineId",
+								"value": {
+									"value": "@pipeline().RunId",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "source_filename",
+								"value": "$$FILEPATH"
+							}
+						],
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"preCopyScript": {
+							"value": "TRUNCATE TABLE @{pipeline().parameters.SinkSchemaName}.@{pipeline().parameters.SinkTableName};",
+							"type": "Expression"
+						},
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "user_id",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "userId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "movie_id",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "movieId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "rating",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "rating",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "timestamp",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "timestamp",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "pipelineId",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pipelineId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "source_filename",
+									"type": "String"
+								},
+								"sink": {
+									"name": "source_filename",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "9_SourceAdlsMetadataDriven",
+						"type": "DatasetReference",
+						"parameters": {
+							"Column_Delimiter": {
+								"value": "@pipeline().parameters.Column_Delimiter",
+								"type": "Expression"
+							},
+							"SourceContainer": {
+								"value": "@pipeline().parameters.SourceContainer",
+								"type": "Expression"
+							},
+							"SourceFolder": {
+								"value": "@pipeline().parameters.SourceFolder",
+								"type": "Expression"
+							},
+							"SoucreFileName": {
+								"value": "@pipeline().parameters.SoucreFileName",
+								"type": "Expression"
+							},
+							"Row_Delimiter": {
+								"value": "@pipeline().parameters.Row_Delimiter",
+								"type": "Expression"
+							},
+							"Encoding": {
+								"value": "@pipeline().parameters.Encoding",
+								"type": "Expression"
+							},
+							"Escape_character": {
+								"value": "@pipeline().parameters.Escape_character",
+								"type": "Expression"
+							},
+							"Quote_character": {
+								"value": "@pipeline().parameters.Quote_character",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "stg_credits",
+						"type": "DatasetReference",
+						"parameters": {
+							"SinkSchemaName": {
+								"value": "@pipeline().parameters.SinkSchemaName",
+								"type": "Expression"
+							},
+							"SinkTableName": {
+								"value": "@pipeline().parameters.SinkTableName",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "SuccessfullRun",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "RawMetadataToDb",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[load_logging_info_proc]",
+					"storedProcedureParameters": {
+						"json": {
+							"value": {
+								"value": "@string(activity('RawMetadataToDb').output)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipeline_name": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"runId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "MoviesDb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "FailedRun",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "RawMetadataToDb",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[load_error_info_proc]",
+					"storedProcedureParameters": {
+						"json": {
+							"value": {
+								"value": "@string(activity('RawMetadataToDb').output)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipeline_name": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"runId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "MoviesDb",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"SinkSchemaName": {
+				"type": "string",
+				"defaultValue": "stg"
+			},
+			"SinkTableName": {
+				"type": "string",
+				"defaultValue": "credits"
+			},
+			"SourceContainer": {
+				"type": "string",
+				"defaultValue": "raw"
+			},
+			"SourceFolder": {
+				"type": "string",
+				"defaultValue": "metadata-driven"
+			},
+			"SoucreFileName": {
+				"type": "string",
+				"defaultValue": "credits.csv"
+			},
+			"Column_Delimiter": {
+				"type": "string",
+				"defaultValue": ","
+			},
+			"Row_Delimiter": {
+				"type": "string",
+				"defaultValue": "\\r\\n"
+			},
+			"Encoding": {
+				"type": "string",
+				"defaultValue": "UTF-8"
+			},
+			"Escape_character": {
+				"type": "string",
+				"defaultValue": "\""
+			},
+			"Quote_character": {
+				"type": "string",
+				"defaultValue": "\""
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-04-14T10:38:34Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

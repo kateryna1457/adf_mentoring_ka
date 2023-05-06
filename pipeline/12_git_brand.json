@@ -1,0 +1,18 @@
+{
+	"name": "12_git_brand",
+	"properties": {
+		"activities": [
+			{
+				"name": "iAlwaysFail",
+				"type": "Fail",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"message": "Internal Server Error",
+					"errorCode": "500"
+				}
+			}
+		],
+		"annotations": []
+	}
+}

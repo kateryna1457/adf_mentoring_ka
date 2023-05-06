@@ -1,0 +1,297 @@
+{
+	"name": "6LocalTicketsToStaging",
+	"properties": {
+		"activities": [
+			{
+				"name": "CopyTicketsData",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "NewWatermark",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "GetLastWatermark",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "select * from dbo.Tickets where TransactionDt > '@{activity('GetLastWatermark').output.firstRow.WatermarkValue}' and TransactionDt <= '@{activity('NewWatermark').output.firstRow.NewWatermarkvalue}'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"preCopyScript": "truncate table stg.cinema_tickets",
+						"writeBehavior": "upsert",
+						"upsertSettings": {
+							"useTempDB": true,
+							"keys": [
+								"movie_id"
+							]
+						},
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "CinemaCode"
+								},
+								"sink": {
+									"name": "cinema_code"
+								}
+							},
+							{
+								"source": {
+									"name": "CinemaName"
+								},
+								"sink": {
+									"name": "cinema_name"
+								}
+							},
+							{
+								"source": {
+									"name": "MovieId",
+									"precision": 10
+								},
+								"sink": {
+									"name": "movie_id",
+									"precision": 10
+								}
+							},
+							{
+								"source": {
+									"name": "TicketCount",
+									"precision": 10
+								},
+								"sink": {
+									"name": "ticket_count",
+									"precision": 10
+								}
+							},
+							{
+								"source": {
+									"name": "TicketPrice",
+									"scale": 1,
+									"precision": 4
+								},
+								"sink": {
+									"name": "ticket_price",
+									"scale": 1,
+									"precision": 4
+								}
+							},
+							{
+								"source": {
+									"name": "TransactionId"
+								},
+								"sink": {
+									"name": "transaction_id"
+								}
+							},
+							{
+								"source": {
+									"name": "TransactionDt",
+									"scale": 3,
+									"precision": 23
+								},
+								"sink": {
+									"name": "transaction_date",
+									"scale": 3,
+									"precision": 23
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SourceLocalTicketsDb",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "stg_cinema_tickets",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "GetLastWatermark",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "LocalWatermark",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "NewWatermark",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "select max(TransactionDt) as NewWatermarkvalue from dbo.Tickets",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SourceLocalTicketsDb",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "UpdateWatermark",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "CopyTicketsData",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_write_watermark]",
+					"storedProcedureParameters": {
+						"LastModifiedtime": {
+							"value": {
+								"value": "@{activity('NewWatermark').output.firstRow.NewWatermarkvalue}",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"TableName": {
+							"value": {
+								"value": "@{activity('GetLastWatermark').output.firstRow.TableName}",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LocalDbCinemaTickets",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "LoadTOtCinema",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "CopyTicketsData",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[load_data_to_dbo_tCinema]"
+				},
+				"linkedServiceName": {
+					"referenceName": "MoviesDb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "LoadTOtCinemaTickets",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "LoadTOtCinema",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[load_data_to_dbo_tCinemaTickets]"
+				},
+				"linkedServiceName": {
+					"referenceName": "MoviesDb",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2023-03-01T11:37:12Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

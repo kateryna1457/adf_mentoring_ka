@@ -1,0 +1,9 @@
+{
+	"name": "mentoring-adf-kka",
+	"location": "francecentral",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "bdf85695-d06d-4897-b810-797bc7cf0b4a",
+		"tenantId": "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
+	}
+}

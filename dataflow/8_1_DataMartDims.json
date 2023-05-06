@@ -1,0 +1,190 @@
+{
+	"name": "8_1_DataMartDims",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "MoviesDboTonlineService",
+						"type": "DatasetReference"
+					},
+					"name": "MoviesDboOnlineService"
+				},
+				{
+					"dataset": {
+						"referenceName": "MoviesDboTmovies",
+						"type": "DatasetReference"
+					},
+					"name": "MoviesDboMovies"
+				},
+				{
+					"dataset": {
+						"referenceName": "MovieDboMovieStatus",
+						"type": "DatasetReference"
+					},
+					"name": "MovieStatus"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DataMartDimMovie",
+						"type": "DatasetReference"
+					},
+					"name": "DataMartMovie"
+				},
+				{
+					"dataset": {
+						"referenceName": "DataMartDimOnlineService",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateRowSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "CreatedAndModifiedDatePopulation",
+					"description": "Updating column CreatedDate and ModifiedDate"
+				},
+				{
+					"name": "JoinMovieStatus"
+				},
+				{
+					"name": "CreatedAndModifiedDates",
+					"description": "Updating CteatedDate and ModifiedDate columns with current timestamp"
+				},
+				{
+					"name": "ConditionUpdateRow"
+				},
+				{
+					"name": "CreatedDateCurrent"
+				},
+				{
+					"name": "DropDates"
+				},
+				{
+					"name": "AddNewRows"
+				},
+				{
+					"name": "alterRow1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ServiceId as integer,",
+				"          ServiceCode as string,",
+				"          ServiceName as string,",
+				"          CreatedDate as timestamp,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> MoviesDboOnlineService",
+				"source(output(",
+				"          MovieId as integer,",
+				"          MovieIdNK as integer,",
+				"          Budget as integer,",
+				"          HomepagePath as string,",
+				"          Title as string,",
+				"          OriginalTitle as string,",
+				"          ReleaseDate as date,",
+				"          Revenue as long,",
+				"          Runtime as integer,",
+				"          MovieStatusId as integer,",
+				"          AvgVote as decimal(3,1),",
+				"          CreatedDate as timestamp,",
+				"          ModifiedDate as timestamp,",
+				"          SrcFileName as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> MoviesDboMovies",
+				"source(output(",
+				"          MovieStatusId as integer,",
+				"          MovieStatusName as string,",
+				"          CreatedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> MovieStatus",
+				"MoviesDboOnlineService derive(ModifiedDate = fromUTC(currentUTC(), 'FLE Standard Time')) ~> CreatedAndModifiedDatePopulation",
+				"MoviesDboMovies, MovieStatus join(MoviesDboMovies@MovieStatusId == MovieStatus@MovieStatusId,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinMovieStatus",
+				"JoinMovieStatus derive(CreatedDateCurrent = fromUTC(currentUTC(), 'FLE Standard Time'),",
+				"          ModifiedDateCurrent = fromUTC(currentUTC(), 'FLE Standard Time')) ~> CreatedAndModifiedDates",
+				"CreatedAndModifiedDatePopulation split(isUpsert(),",
+				"     disjoint: false) ~> ConditionUpdateRow@(UpdateRow, NewRow)",
+				"ConditionUpdateRow@NewRow derive(CreatedDate = case(ServiceId!=1, fromUTC(currentUTC(), 'FLE Standard Time'), toTimestamp('2023-03-31 15:53:58.637'))) ~> CreatedDateCurrent",
+				"ConditionUpdateRow@UpdateRow select(mapColumn(",
+				"          ServiceCode,",
+				"          ServiceName",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> DropDates",
+				"DropDates, CreatedDateCurrent union(byName: true)~> AddNewRows",
+				"AddNewRows alterRow(upsertIf(true())) ~> alterRow1",
+				"CreatedAndModifiedDates sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          MovieKey as integer,",
+				"          MovieIdNK as integer,",
+				"          Title as string,",
+				"          ReleaseDate as date,",
+				"          Runtime as integer,",
+				"          MovieStatus as string,",
+				"          CreatedDate as timestamp,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          MovieIdNK,",
+				"          Title,",
+				"          ReleaseDate,",
+				"          Runtime,",
+				"          MovieStatus = MovieStatusName,",
+				"          CreatedDate = CreatedDateCurrent,",
+				"          ModifiedDate = ModifiedDateCurrent",
+				"     )) ~> DataMartMovie",
+				"alterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ServiceKey as integer,",
+				"          ServiceCode as string,",
+				"          ServiceName as string,",
+				"          CreatedDate as timestamp,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['ServiceCode'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          ServiceCode,",
+				"          ServiceName,",
+				"          CreatedDate,",
+				"          ModifiedDate",
+				"     )) ~> UpdateRowSink"
+			]
+		}
+	}
+}
