@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "mentoring-adf-kka"
 		},
+		"MasterDB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'MasterDB'"
+		},
 		"azurementoringdatalakeka_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://azurementoringdatalakekk.dfs.core.windows.net"
@@ -26,14 +30,6 @@
 		"MoviesDb_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "moviesDbEtlUser"
-		},
-		"OnlineMentoringStorage_properties_typeProperties_sasUri_secretName": {
-			"type": "string",
-			"defaultValue": "rlonlinestoragementoring"
-		},
-		"azurementoringaukka_properties_typeProperties_sasUri_secretName": {
-			"type": "string",
-			"defaultValue": "blobaustralialistread"
 		}
 	},
 	"variables": {
@@ -90,6 +86,19 @@
 					"cancelAfter": {}
 				},
 				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MasterDB')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('MasterDB_connectionString')]"
+				}
 			},
 			"dependsOn": []
 		},
@@ -169,6 +178,194 @@
 				"typeProperties": {}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/11_Logic_Apps_Email_Notification')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Web",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "SetErrorMessage",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "SetStatus",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": {
+								"value": "@pipeline().parameters.URI",
+								"type": "Expression"
+							},
+							"method": "GET",
+							"headers": {},
+							"body": {
+								"value": "{\n    \"message\" : \"This is a custom dynamic message from your pipeline with run ID @{pipeline().RunId}.\",\n    \"dataFactoryName\" : \"@{pipeline().DataFactory}\", \n    \"pipelineName\" : \"@{pipeline().Pipeline}\", \n    \"receiver\" : \"@{pipeline().parameters.receiver}\",\n    \"status\" : \"@{variables('Status')}\",\n    \"error\" : \"@{variables('ErrorMessage')}\"\n   }",
+								"type": "Expression"
+							},
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					},
+					{
+						"name": "ExecuteAnotherPipeline",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "10_Always_Fail",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "SetErrorMessage",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "ExecuteAnotherPipeline",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "ErrorMessage",
+							"value": {
+								"value": "@if(equals(empty(activity('ExecuteAnotherPipeline').error?.message), true), 'No errors', activity('ExecuteAnotherPipeline').error.message)",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "SetStatus",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "ExecuteAnotherPipeline",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "Status",
+							"value": {
+								"value": "@if(equals(activity('ExecuteAnotherPipeline').Status,'Succeeded'), 'Succeeded', 'Failed')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "SetURLforEmail",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Web",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "URLforEmail",
+							"value": {
+								"value": "@activity('Web').output.value",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "SendEmail",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "SetURLforEmail",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": {
+								"value": "@variables('URLforEmail')",
+								"type": "Expression"
+							},
+							"method": "POST",
+							"headers": {},
+							"body": {
+								"value": "{\n    \"message\" : \"This is a message from your pipeline with run ID @{pipeline().RunId}.\",\n    \"dataFactoryName\" : \"@{pipeline().DataFactory}\", \n    \"pipelineName\" : \"@{pipeline().Pipeline}\", \n    \"receiver\" : \"@{pipeline().parameters.receiver}\",\n    \"status\" : \"@{variables('Status')}\",\n    \"error\" : \"@{variables('ErrorMessage')}\"\n   }",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"URI": {
+						"type": "string",
+						"defaultValue": "https://mentoring-key-vault-kka.vault.azure.net/secrets/LogicAppsEndpoint/1ff4d920c55c48c4a5d9bc8af7262755?api-version=7.0"
+					},
+					"receiver": {
+						"type": "string",
+						"defaultValue": "kateryna_aleksieieva@epam.com"
+					}
+				},
+				"variables": {
+					"ErrorMessage": {
+						"type": "String",
+						"defaultValue": "None"
+					},
+					"Status": {
+						"type": "String"
+					},
+					"URLforEmail": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2023-05-05T12:50:26Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/10_Always_Fail')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/9_ParametrizedSource')]",
@@ -575,50 +772,6 @@
 						},
 						"secretName": "[parameters('MoviesDb_properties_typeProperties_connectionString_secretName')]",
 						"secretVersion": "d983001dace9462abfb95d694f586f53"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/mentoring_key_vault_ka')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/OnlineMentoringStorage')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"sasUri": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "mentoring_key_vault_ka",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "[parameters('OnlineMentoringStorage_properties_typeProperties_sasUri_secretName')]"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/mentoring_key_vault_ka')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/azurementoringaukka')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"sasUri": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "mentoring_key_vault_ka",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "[parameters('azurementoringaukka_properties_typeProperties_sasUri_secretName')]"
 					}
 				}
 			},

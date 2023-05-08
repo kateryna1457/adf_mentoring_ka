@@ -5,6 +5,9 @@
 		"factoryName": {
 			"value": "mentoring-adf-kka"
 		},
+		"MasterDB_connectionString": {
+			"value": ""
+		},
 		"DataMartDB_properties_typeProperties_connectionString_secretName": {
 			"value": "DataMartAccess"
 		},

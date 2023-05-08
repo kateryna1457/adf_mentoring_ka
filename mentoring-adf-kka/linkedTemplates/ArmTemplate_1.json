@@ -7,6 +7,14 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "mentoring-adf-kka"
 		},
+		"OnlineMentoringStorage_properties_typeProperties_sasUri_secretName": {
+			"type": "string",
+			"defaultValue": "rlonlinestoragementoring"
+		},
+		"azurementoringaukka_properties_typeProperties_sasUri_secretName": {
+			"type": "string",
+			"defaultValue": "blobaustralialistread"
+		},
 		"azurementoringstorageka_properties_typeProperties_sasUri_secretName": {
 			"type": "string",
 			"defaultValue": "accesstokentomoviescontainerinazurementoringstorage"
@@ -16,6 +24,46 @@
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/OnlineMentoringStorage')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"sasUri": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "mentoring_key_vault_ka",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "[parameters('OnlineMentoringStorage_properties_typeProperties_sasUri_secretName')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/azurementoringaukka')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"sasUri": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "mentoring_key_vault_ka",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "[parameters('azurementoringaukka_properties_typeProperties_sasUri_secretName')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/azurementoringstorageka')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
@@ -518,7 +566,9 @@
 					}
 				]
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/azurementoringaukka')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/DataMartDimMovie')]",
@@ -1128,117 +1178,9 @@
 				},
 				"schema": {}
 			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/stg_cinema_tickets')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "MoviesDb",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "cinema_code",
-						"type": "nvarchar"
-					},
-					{
-						"name": "cinema_name",
-						"type": "nvarchar"
-					},
-					{
-						"name": "movie_id",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "ticket_count",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "ticket_price",
-						"type": "decimal",
-						"precision": 4,
-						"scale": 1
-					},
-					{
-						"name": "transaction_id",
-						"type": "nvarchar"
-					},
-					{
-						"name": "transaction_date",
-						"type": "datetime",
-						"precision": 23,
-						"scale": 3
-					}
-				],
-				"typeProperties": {
-					"schema": "stg",
-					"table": "cinema_tickets"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/stg_credits')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "MoviesDb",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"SinkSchemaName": {
-						"type": "string",
-						"defaultValue": "stg"
-					},
-					"SinkTableName": {
-						"type": "string",
-						"defaultValue": "credits"
-					}
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "cast",
-						"type": "nvarchar"
-					},
-					{
-						"name": "crew",
-						"type": "nvarchar"
-					},
-					{
-						"name": "id",
-						"type": "nvarchar"
-					},
-					{
-						"name": "pipelineId",
-						"type": "nvarchar"
-					},
-					{
-						"name": "source_filename",
-						"type": "nvarchar"
-					}
-				],
-				"typeProperties": {
-					"schema": {
-						"value": "@dataset().SinkSchemaName",
-						"type": "Expression"
-					},
-					"table": {
-						"value": "@dataset().SinkTableName",
-						"type": "Expression"
-					}
-				}
-			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/OnlineMentoringStorage')]"
+			]
 		}
 	]
 }

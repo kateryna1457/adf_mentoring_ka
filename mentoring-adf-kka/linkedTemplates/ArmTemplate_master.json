@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "mentoring-adf-kka"
 		},
+		"MasterDB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'MasterDB'"
+		},
 		"DataMartDB_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "DataMartAccess"
@@ -66,6 +70,9 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"MasterDB_connectionString": {
+						"value": "[parameters('MasterDB_connectionString')]"
+					},
 					"azurementoringdatalakeka_properties_typeProperties_url": {
 						"value": "[parameters('azurementoringdatalakeka_properties_typeProperties_url')]"
 					},
@@ -80,12 +87,6 @@
 					},
 					"MoviesDb_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('MoviesDb_properties_typeProperties_connectionString_secretName')]"
-					},
-					"OnlineMentoringStorage_properties_typeProperties_sasUri_secretName": {
-						"value": "[parameters('OnlineMentoringStorage_properties_typeProperties_sasUri_secretName')]"
-					},
-					"azurementoringaukka_properties_typeProperties_sasUri_secretName": {
-						"value": "[parameters('azurementoringaukka_properties_typeProperties_sasUri_secretName')]"
 					}
 				}
 			},
@@ -104,6 +105,12 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"OnlineMentoringStorage_properties_typeProperties_sasUri_secretName": {
+						"value": "[parameters('OnlineMentoringStorage_properties_typeProperties_sasUri_secretName')]"
+					},
+					"azurementoringaukka_properties_typeProperties_sasUri_secretName": {
+						"value": "[parameters('azurementoringaukka_properties_typeProperties_sasUri_secretName')]"
 					},
 					"azurementoringstorageka_properties_typeProperties_sasUri_secretName": {
 						"value": "[parameters('azurementoringstorageka_properties_typeProperties_sasUri_secretName')]"

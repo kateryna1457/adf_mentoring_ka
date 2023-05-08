@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "mentoring-adf-kka"
 		},
+		"MasterDB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'MasterDB'"
+		},
 		"DataMartDB_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "DataMartAccess"
@@ -127,7 +131,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"pipeline": {
-								"referenceName": "CopyFromBlobToDataLake",
+								"referenceName": "10_Always_Fail",
 								"type": "PipelineReference"
 							},
 							"waitOnCompletion": true,
@@ -257,7 +261,7 @@
 				"lastPublishTime": "2023-05-05T12:50:26Z"
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/CopyFromBlobToDataLake')]"
+				"[concat(variables('factoryId'), '/pipelines/10_Always_Fail')]"
 			]
 		},
 		{
@@ -4727,6 +4731,19 @@
 				"[concat(variables('factoryId'), '/integrationRuntimes/SelfHostedIR6Module')]",
 				"[concat(variables('factoryId'), '/linkedServices/mentoring_key_vault_ka')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MasterDB')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('MasterDB_connectionString')]"
+				}
+			},
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/MoviesDb')]",
