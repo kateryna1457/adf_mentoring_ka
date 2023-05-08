@@ -50,7 +50,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
-						"referenceName": "CopyFromBlobToDataLake",
+						"referenceName": "10_Always_Fail",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true
