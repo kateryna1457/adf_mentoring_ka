@@ -1,5 +1,13 @@
 {
 	"name": "mentoring-adf-kka",
+	"properties": {
+		"globalParameters": {
+			"kvsecret": {
+				"type": "string",
+				"value": "https://prod-19.francecentral.logic.azure.com/workflows/08356a04fe5647fc83e3c7156ebb06c6/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=xA52PE6pA_fmhQFBXjhVIBZeiOq6PBYNU_lj5jdI7Hw"
+			}
+		}
+	},
 	"location": "francecentral",
 	"identity": {
 		"type": "SystemAssigned",
