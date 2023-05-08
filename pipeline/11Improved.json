@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"url": {
-						"value": "@variables('URLforEmail')",
+						"value": "@pipeline().globalParameters.kvsecret",
 						"type": "Expression"
 					},
 					"method": "POST",
