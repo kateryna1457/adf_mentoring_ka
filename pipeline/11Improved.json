@@ -5,6 +5,37 @@
 			{
 				"name": "SendEmail",
 				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Web",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@activity('Web').output",
+						"type": "Expression"
+					},
+					"method": "POST",
+					"body": {
+						"value": "{\n    \"message\" : \"This is a message from your pipeline with run ID.\",\n    \"dataFactoryName\" : \"SomeDFHere\", \n    \"pipelineName\" : \"Adf\", \n    \"receiver\" : \"kateryna_aleksieieva@epam.com\",\n    \"status\" : \"Failed\",\n    \"error\" : \"Some error here\"\n   }",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Web",
+				"type": "WebActivity",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -19,10 +50,14 @@
 						"value": "@pipeline().globalParameters.kvsecret",
 						"type": "Expression"
 					},
-					"method": "POST",
+					"method": "GET",
 					"body": {
-						"value": "{\n    \"message\" : \"This is a message from your pipeline with run ID.\",\n    \"dataFactoryName\" : \"SomeDFHere\", \n    \"pipelineName\" : \"Adf\", \n    \"receiver\" : \"kateryna_aleksieieva@epam.com\",\n    \"status\" : \"Failed\",\n    \"error\" : \"Some error here\"\n   }",
+						"value": "{\n    \"message\" : \"This is a custom dynamic message from your pipeline with run ID @{pipeline().RunId}.\",\n    \"dataFactoryName\" : \"@{pipeline().DataFactory}\", \n    \"pipelineName\" : \"@{pipeline().Pipeline}\", \n    \"receiver\" : \"@{pipeline().parameters.receiver}\",\n    \"status\" : \"@{variables('Status')}\",\n    \"error\" : \"@{variables('ErrorMessage')}\"\n   }",
 						"type": "Expression"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
 					}
 				}
 			}
