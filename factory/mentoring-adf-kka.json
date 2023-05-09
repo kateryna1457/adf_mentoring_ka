@@ -4,7 +4,7 @@
 		"globalParameters": {
 			"kvsecret": {
 				"type": "string",
-				"value": "https://prod-19.francecentral.logic.azure.com/workflows/08356a04fe5647fc83e3c7156ebb06c6?api-version=7.0/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=xA52PE6pA_fmhQFBXjhVIBZeiOq6PBYNU_lj5jdI7Hw"
+				"value": "https://mentoring-key-vault-kka.vault.azure.net/secrets/LogicAppsEndpoint/1ff4d920c55c48c4a5d9bc8af7262755?api-version=7.0"
 			}
 		}
 	},
