@@ -23,7 +23,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"url": {
-						"value": "@activity('Web').output",
+						"value": "@activity('Web').output.value",
 						"type": "Expression"
 					},
 					"method": "POST",
