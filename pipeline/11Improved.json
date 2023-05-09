@@ -50,11 +50,7 @@
 						"value": "@pipeline().globalParameters.kvsecret",
 						"type": "Expression"
 					},
-					"method": "GET",
-					"body": {
-						"value": "{\n    \"message\" : \"This is a custom dynamic message from your pipeline with run ID @{pipeline().RunId}.\",\n    \"dataFactoryName\" : \"@{pipeline().DataFactory}\", \n    \"pipelineName\" : \"@{pipeline().Pipeline}\", \n    \"receiver\" : \"@{pipeline().parameters.receiver}\",\n    \"status\" : \"@{variables('Status')}\",\n    \"error\" : \"@{variables('ErrorMessage')}\"\n   }",
-						"type": "Expression"
-					},
+					"method": "POST",
 					"authentication": {
 						"type": "MSI",
 						"resource": "https://vault.azure.net"
